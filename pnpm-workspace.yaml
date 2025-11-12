@@ -1,0 +1,22 @@
+packages:
+  # 所有在 packages/ 和 apps/ 子目录下的包
+  - 'packages/*'
+  - 'apps/*'
+  
+  # 排除在 packages/test 或 apps/test 中的包
+  - '!**/test/**'
+
+# 共享依赖配置
+hoist-pattern:
+  - '*'  # 将所有依赖提升到根node_modules
+
+# 共享依赖排除列表
+nohoist:
+  # 不提升某些特定依赖
+  - '**/eslint'
+  - '**/eslint/**'
+  - '**/webpack'
+  - '**/webpack/**'
+
+# 依赖解析策略
+resolution-mode: 'highest'

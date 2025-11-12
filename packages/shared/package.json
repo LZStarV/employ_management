@@ -1,0 +1,39 @@
+{
+  "name": "@employee-management/shared",
+  "version": "1.0.0",
+  "description": "员工管理系统共享工具和配置",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@employee-management/types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./config": {
+      "import": "./dist/config/index.js",
+      "require": "./dist/config/index.cjs",
+      "types": "./dist/config/index.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils/index.js",
+      "require": "./dist/utils/index.cjs",
+      "types": "./dist/utils/index.d.ts"
+    }
+  }
+}

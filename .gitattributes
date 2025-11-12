@@ -1,0 +1,71 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Text files
+*.js text
+*.ts text
+*.jsx text
+*.tsx text
+*.json text
+*.yml text
+*.yaml text
+*.md text
+*.txt text
+*.html text
+*.css text
+*.scss text
+*.vue text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+
+# Source code files
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.jsx linguist-language=JavaScript
+*.tsx linguist-language=TypeScript
+*.vue linguist-language=Vue
+*.json linguist-language=JSON
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
+*.md linguist-language=Markdown
+
+# Package manager files
+package-lock.json -diff
+pnpm-lock.yaml -diff
+yarn.lock -diff
+
+# Documentation
+README.md linguist-documentation
+CHANGELOG.md linguist-documentation
+LICENSE linguist-documentation
+
+# Configuration files
+.gitignore export-ignore
+.gitattributes export-ignore
+.eslintignore export-ignore
+.prettierignore export-ignore
+
+# Test files
+__tests__/**/* linguist-documentation
+*.test.js linguist-documentation
+*.spec.js linguist-documentation
+*.test.ts linguist-documentation
+*.spec.ts linguist-documentation
+
+# Generated files
+dist/**/* linguist-generated
+build/**/* linguist-generated
+coverage/**/* linguist-generated
+
+# Large files
+*.log -text
+*.cache -text

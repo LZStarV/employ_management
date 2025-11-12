@@ -1,0 +1,41 @@
+{
+  "name": "@employee-management/frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/**/*.{js,jsx,ts,tsx,vue}",
+    "type-check": "vue-tsc --noEmit",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@employee-management/types": "workspace:*",
+    "@employee-management/shared": "workspace:*",
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.6.7",
+    "echarts": "^6.0.0",
+    "element-plus": "^2.5.3",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21",
+    "vue-echarts": "^8.0.1",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/tsconfig": "^0.5.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-vue": "^9.19.2",
+    "typescript": "~5.3.3",
+    "vite": "^5.1.6",
+    "vue-tsc": "^1.8.25",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
