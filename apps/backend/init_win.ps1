@@ -1,180 +1,194 @@
-# 员工管理系统后端部署和启动脚本（Windows版本）
-# 使用PowerShell执行
+# Employee Management System Backend Deployment Script (Windows Version)
+# Execute using PowerShell
 Write-Host "====================================" -ForegroundColor Cyan
-Write-Host "员工管理系统后端部署脚本（Windows版本）" -ForegroundColor Cyan
+Write-Host "Employee Management System Backend Deployment Script (Windows Version)" -ForegroundColor Cyan
 Write-Host "====================================" -ForegroundColor Cyan
 
-# 检查是否以管理员权限运行
+# Check if running with administrator privileges
 function Test-Admin {
     $currentUser = New-Object Security.Principal.WindowsPrincipal $([Security.Principal.WindowsIdentity]::GetCurrent())
     return $currentUser.IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
 }
 
 if (-not (Test-Admin)) {
-    Write-Host "警告：当前不是管理员权限，无法自动安装系统依赖" -ForegroundColor Yellow
-    Write-Host "如果需要自动安装依赖，请以管理员身份运行PowerShell" -ForegroundColor Yellow
-    Write-Host "如果这些依赖已安装，可以继续执行..." -ForegroundColor Yellow
+    Write-Host "Warning: Not running with administrator privileges, cannot automatically install system dependencies" -ForegroundColor Yellow
+    Write-Host "If you need to automatically install dependencies, please run PowerShell as administrator" -ForegroundColor Yellow
+    Write-Host "If these dependencies are already installed, you can continue..." -ForegroundColor Yellow
     
-    $continue = Read-Host "是否继续执行？(y/n)"
+    $continue = Read-Host "Continue execution? (y/n)"
     if ($continue -ne "y" -and $continue -ne "Y") {
         exit
     }
 }
 
-# 检查并安装系统依赖
+# Check and install system dependencies
 function Install-SystemDeps {
-    Write-Host "检查系统依赖..." -ForegroundColor Yellow
+    Write-Host "Checking system dependencies..." -ForegroundColor Yellow
     
-    # 检查Node.js
+    # Check Node.js
     if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-        Write-Host "Node.js 未安装，请手动下载并安装 Node.js 20.x" -ForegroundColor Red
-        Write-Host "下载地址: https://nodejs.org/en/download/" -ForegroundColor Yellow
+        Write-Host "Node.js is not installed, please manually download and install Node.js 20.x" -ForegroundColor Red
+        Write-Host "Download URL: https://nodejs.org/en/download/" -ForegroundColor Yellow
         pause
     } else {
-        Write-Host "Node.js 已安装" -ForegroundColor Green
+        Write-Host "Node.js is installed" -ForegroundColor Green
     }
     
-    # 检查pnpm
+    # Check pnpm
     if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
-        Write-Host "pnpm 未安装，正在安装..." -ForegroundColor Yellow
+        Write-Host "pnpm is not installed, installing..." -ForegroundColor Yellow
         npm install -g pnpm
-        Write-Host "pnpm 安装完成" -ForegroundColor Green
+        Write-Host "pnpm installation completed" -ForegroundColor Green
     } else {
-        Write-Host "pnpm 已安装" -ForegroundColor Green
+        Write-Host "pnpm is installed" -ForegroundColor Green
     }
     
-    # 检查PostgreSQL
+    # Check PostgreSQL
     if (-not (Get-Command psql -ErrorAction SilentlyContinue)) {
-        Write-Host "PostgreSQL 未安装，请手动下载并安装 PostgreSQL" -ForegroundColor Red
-        Write-Host "下载地址: https://www.postgresql.org/download/windows/" -ForegroundColor Yellow
-        Write-Host "安装时请记住设置的密码，后续需要配置" -ForegroundColor Yellow
+        Write-Host "PostgreSQL is not installed, please manually download and install PostgreSQL" -ForegroundColor Red
+        Write-Host "Download URL: https://www.postgresql.org/download/windows/" -ForegroundColor Yellow
+        Write-Host "Remember the password you set during installation, it will be needed for configuration" -ForegroundColor Yellow
         pause
     } else {
-        Write-Host "PostgreSQL 已安装" -ForegroundColor Green
+        Write-Host "PostgreSQL is installed" -ForegroundColor Green
     }
     
-    # 检查Redis
+    # Check Redis
     if (-not (Get-Command redis-server -ErrorAction SilentlyContinue)) {
-        Write-Host "Redis 未安装，这不是必需的（仅用于性能监控）" -ForegroundColor Yellow
-        Write-Host "如果需要安装，可以从 https://github.com/tporadowski/redis/releases 下载" -ForegroundColor Yellow
+        Write-Host "Redis is not installed, it's not required (only used for performance monitoring)" -ForegroundColor Yellow
+        Write-Host "If you need to install it, you can download from https://github.com/tporadowski/redis/releases" -ForegroundColor Yellow
     } else {
-        Write-Host "Redis 已安装" -ForegroundColor Green
+        Write-Host "Redis is installed" -ForegroundColor Green
     }
 }
 
-# 配置PostgreSQL数据库
+# Configure PostgreSQL database
 function Setup-Database {
-    Write-Host "配置PostgreSQL数据库..." -ForegroundColor Yellow
+    Write-Host "Configuring PostgreSQL database..." -ForegroundColor Yellow
     
-    # 检查数据库是否存在
+    # Check if database exists
     if (Get-Command psql -ErrorAction SilentlyContinue) {
-        # 提示用户输入PostgreSQL的密码
-        $pgPassword = Read-Host -Prompt "请输入PostgreSQL的postgres用户密码" -AsSecureString
+        # Prompt user for PostgreSQL password
+        $pgPassword = Read-Host -Prompt "Please enter PostgreSQL postgres user password" -AsSecureString
         $pgPasswordPlain = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pgPassword))
         
-        # 设置环境变量
+        # Set environment variable
         $env:PGPASSWORD = $pgPasswordPlain
         
         try {
-            # 尝试创建数据库和用户
-            Write-Host "尝试创建数据库..." -ForegroundColor Cyan
+            # Try to create database and user
+            Write-Host "Attempting to create database..." -ForegroundColor Cyan
             psql -U postgres -c "CREATE DATABASE employee_management;" 2>$null
             
-            Write-Host "尝试设置用户权限..." -ForegroundColor Cyan
+            Write-Host "Attempting to set user privileges..." -ForegroundColor Cyan
             psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE employee_management TO postgres;" 2>$null
             psql -U postgres -c "ALTER USER postgres WITH SUPERUSER;" 2>$null
             
-            Write-Host "数据库配置完成" -ForegroundColor Green
+            Write-Host "Database configuration completed" -ForegroundColor Green
         } catch {
-            Write-Host "数据库配置失败: $_" -ForegroundColor Red
-            Write-Host "请手动检查PostgreSQL配置" -ForegroundColor Yellow
+            Write-Host "Database configuration failed: $_" -ForegroundColor Red
+            Write-Host "Please manually check PostgreSQL configuration" -ForegroundColor Yellow
         } finally {
-            # 清理环境变量
+            # Clean up environment variable
             Remove-Item Env:PGPASSWORD
         }
     } else {
-        Write-Host "PostgreSQL 不可用，请确保服务已启动" -ForegroundColor Red
+        Write-Host "PostgreSQL is not available, please ensure the service is started" -ForegroundColor Red
     }
 }
 
-# 安装项目依赖
+# Install project dependencies
 function Install-Deps {
-    Write-Host "安装项目依赖..." -ForegroundColor Yellow
-    pnpm install --prod
-    Write-Host "依赖安装完成" -ForegroundColor Green
+    Write-Host "Installing project dependencies..." -ForegroundColor Yellow
+    try {
+        pnpm install --prod
+        Write-Host "Dependencies installation completed" -ForegroundColor Green
+    } catch {
+        Write-Host "Dependencies installation failed: $_" -ForegroundColor Red
+    }
 }
 
-# 检查并创建.env文件
+# Check and create .env file
 function Setup-EnvFile {
     if (-not (Test-Path ".env")) {
-        Write-Host ".env文件不存在，正在创建..." -ForegroundColor Yellow
+        Write-Host ".env file does not exist, creating..." -ForegroundColor Yellow
         
         $envContent = @"
-# 数据库连接配置
+# Database connection configuration
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=employee_management
 DB_USER=postgres
 DB_PASSWORD=postgres
 
-# Redis配置（用于缓存和性能监控）
+# Redis configuration (for caching and performance monitoring)
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
-# 服务器配置
+# Server configuration
 PORT=3000
 NODE_ENV=production
 
-# JWT配置
+# JWT configuration
 JWT_SECRET=your_jwt_secret_key
 JWT_EXPIRES_IN=24h
 
-# 日志级别
+# Log level
 LOG_LEVEL=info
 
-# 性能监控配置
+# Performance monitoring configuration
 ENABLE_PERFORMANCE_LOGGING=true
 MAX_LOG_AGE_DAYS=7
 "@
         
         $envContent | Out-File ".env" -Encoding utf8
-        Write-Host ".env文件创建完成" -ForegroundColor Green
-        Write-Host "注意：请根据您的PostgreSQL配置修改.env文件中的数据库密码" -ForegroundColor Yellow
+        Write-Host ".env file created successfully" -ForegroundColor Green
+        Write-Host "Note: Please modify the database password in the .env file according to your PostgreSQL configuration" -ForegroundColor Yellow
     } else {
-        Write-Host ".env文件已存在" -ForegroundColor Green
+        Write-Host ".env file already exists" -ForegroundColor Green
     }
 }
 
-# 初始化数据库结构
+# Initialize database structure
 function Init-Database {
-    Write-Host "初始化数据库结构..." -ForegroundColor Yellow
-    node scripts/init_db.js
-    Write-Host "数据库结构初始化完成" -ForegroundColor Green
+    Write-Host "Initializing database structure..." -ForegroundColor Yellow
+    try {
+        node scripts/init_db.js
+        Write-Host "Database structure initialization completed" -ForegroundColor Green
+    } catch {
+        Write-Host "Database structure initialization failed: $_" -ForegroundColor Red
+        Write-Host "Please check PostgreSQL connection and permissions" -ForegroundColor Yellow
+    }
 }
 
-# 填充测试数据
+# Seed test data
 function Seed-Database {
-    Write-Host "填充测试数据..." -ForegroundColor Yellow
-    node scripts/seed_data.js
-    Write-Host "测试数据填充完成" -ForegroundColor Green
+    Write-Host "Seeding test data..." -ForegroundColor Yellow
+    try {
+        node scripts/seed_data.js
+        Write-Host "Test data seeding completed" -ForegroundColor Green
+    } catch {
+        Write-Host "Test data seeding failed: $_" -ForegroundColor Red
+        Write-Host "Please check database connection and table structure" -ForegroundColor Yellow
+    }
 }
 
-# 主函数
+# Main function
 function Main {
-    # 显示版本信息
-    Write-Host "检查Node.js和pnpm版本..." -ForegroundColor Green
+    # Display version information
+    Write-Host "Checking Node.js and pnpm versions..." -ForegroundColor Green
     try {
         node -v
     } catch {
-        Write-Host "Node.js 未安装" -ForegroundColor Red
+        Write-Host "Node.js is not installed" -ForegroundColor Red
     }
     try {
         pnpm -v
     } catch {
-        Write-Host "pnpm 未安装" -ForegroundColor Red
+        Write-Host "pnpm is not installed" -ForegroundColor Red
     }
     
-    # 执行各个步骤
+    # Execute each step
     Install-SystemDeps
     Setup-Database
     Install-Deps
@@ -182,19 +196,19 @@ function Main {
     Init-Database
     Seed-Database
     
-    # 显示成功提示
+    # Display success message
     Write-Host "====================================" -ForegroundColor Green
-    Write-Host "初始化完成！" -ForegroundColor Green
+    Write-Host "Initialization completed!" -ForegroundColor Green
     Write-Host "====================================" -ForegroundColor Green
-    Write-Host "后端环境已成功初始化" -ForegroundColor Green
-    Write-Host "数据库结构已创建" -ForegroundColor Green
-    Write-Host "测试数据已填充" -ForegroundColor Green
+    Write-Host "Backend environment has been successfully initialized" -ForegroundColor Green
+    Write-Host "Database structure has been created" -ForegroundColor Green
+    Write-Host "Test data has been populated" -ForegroundColor Green
     Write-Host "" -ForegroundColor Green
-    Write-Host "现在可以启动后端服务：" -ForegroundColor Yellow
+    Write-Host "You can now start the backend service:" -ForegroundColor Yellow
     Write-Host "npm run dev" -ForegroundColor Cyan
-    Write-Host "或" -ForegroundColor Yellow
+    Write-Host "or" -ForegroundColor Yellow
     Write-Host "node app.js" -ForegroundColor Cyan
 }
 
-# 执行主函数
+# Execute main function
 Main

@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    /* 后端特有的配置，覆盖根目录配置 */
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2020"],
+    "noEmit": false,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "jsx": "react", // 后端不需要JSX
+    "allowImportingTsExtensions": false,
+    
+    /* Node.js特有的配置 */
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    
+    /* 路径映射 */
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../../packages/shared/src/*"],
+      "@types/*": ["../../packages/types/src/*"]
+    }
+  },
+  "include": ["src/**/*", "app.js", "test_db_connection.js"],
+  "exclude": ["node_modules", "dist", "build"]
+}
